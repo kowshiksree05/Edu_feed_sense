@@ -1,0 +1,36 @@
+{
+    "faculty": [
+        {
+            "name": "amit",
+            "analyzed_feedback": 2
+        },
+        {
+            "name": "lab8",
+            "analyzed_feedback": 1
+        },
+        {
+            "name": "sai",
+            "analyzed_feedback": 0
+        },
+        {
+            "name": "kumar",
+            "analyzed_feedback": 0
+        },
+        {
+            "name": "coursera",
+            "analyzed_feedback": -1
+        },
+        {
+            "name": "reviews",
+            "analyzed_feedback": -1
+        },
+        {
+            "name": "stddata",
+            "analyzed_feedback": -1
+        },
+        {
+            "name": "cn",
+            "analyzed_feedback": 1
+        }
+    ]
+}

@@ -1,0 +1,27 @@
+{
+    "lab8": {
+        "POSITIVE": 65,
+        "NEGATIVE": 23,
+        "NEUTRAL": 7
+    },
+    "amit": {
+        "NEGATIVE": 1,
+        "POSITIVE": 1,
+        "NEUTRAL": 1
+    },
+    "sai": {
+        "NEGATIVE": 7,
+        "POSITIVE": 5,
+        "NEUTRAL": 4
+    },
+    "kumar": {
+        "NEGATIVE": 5,
+        "POSITIVE": 4,
+        "NEUTRAL": 1
+    },
+    "cn": {
+        "POSITIVE": 78,
+        "NEGATIVE": 13,
+        "NEUTRAL": 9
+    }
+}
