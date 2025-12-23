@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Analysis Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f7f9fa;
+        }
+        a {
+            margin-left: 45%;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            width: 60%;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+        .alert-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 9999;
+        }
+        .alert-dismissible {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Feedback Analysis Results</h1>
+        <hr>
+        
+        <!-- Sentiment Summary -->
+        <h3>Sentiment Summary</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Sentiment</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sentiment, count in sentiment_summary.items() %}
+                    <tr>
+                        <td>{{ sentiment }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+
+        <!-- Sentiment Doughnut Chart -->
+        <h3 class="text-center">Sentiment Distribution % </h3>
+        <div class="chart-container">
+            <canvas id="sentimentChart"></canvas>
+        </div>
+        <hr>
+        <!-- Sentiment Bar Chart -->
+        <h3 class="text-center">Sentiment Distribution 📊 </h3>
+        <div class="chart-container">
+            <canvas id="barChart"></canvas>
+        </div>
+        <hr>
+        <!-- Download Chart Button -->
+        <div class="d-flex flex-column align-items-center">
+    <button id="downloadChart" class="btn btn-success my-2">Download Overall Result</button>
+    <hr>
+    <button id="downloadData" class="btn btn-info my-2">Download Numerical Data</button>
+</div>
+        <!-- Flash Message for download success -->
+        <div class="alert alert-success alert-dismissible fade show alert-container" role="alert" id="flashMessage" style="display: none;">
+            Chart image downloaded successfully!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <script>
+            // Initialize Doughnut Chart
+            const ctxDoughnut = document.getElementById('sentimentChart').getContext('2d');
+            const sentimentChart = new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ chart_data['labels'] | safe }},
+                    datasets: [{
+                        data: {{ chart_data['data'] | safe }},
+                        backgroundColor: [
+                            '#4caf50',
+                            '#f44336',
+                            '#ffeb3b'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    const dataset = tooltipItem.dataset.data;
+                                    const total = dataset.reduce((sum, value) => sum + value, 0);
+                                    const value = dataset[tooltipItem.dataIndex];
+                                    const percentage = ((value / total) * 100).toFixed(2);
+                                    return `${tooltipItem.label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+
+            // Initialize Bar Chart
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            const barChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: {{ chart_data['labels'] | safe }},
+                    datasets: [{
+                        label: 'Sentiment Count',
+                        data: {{ chart_data['data'] | safe }},
+                        backgroundColor: [
+                            '#1e88e5', // Light Blue
+                            '#1565c0', // Medium Blue
+                            '#0d47a1'  // Dark Blue
+                        ], 
+                        borderColor: [
+                            '#1e88e5',
+                            '#1565c0',
+                            '#0d47a1'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Function to download the chart image
+            document.getElementById('downloadChart').addEventListener('click', function () {
+                const chartImage = sentimentChart.toBase64Image(); // Get the chart as a base64 image
+                const facultyName = "{{ faculty_name }}"; // Use the faculty name from the Flask template
+                const systemDate = "{{ system_date }}"; // Use the system date from the Flask template
+                const fileName = `${facultyName.replace(/\s+/g, '_')}_${systemDate}.png`; // Generate dynamic filename
+
+                // Create an anchor tag to trigger the download
+                const link = document.createElement('a');
+                link.href = chartImage;
+                link.download = fileName; // Set the download filename
+                link.click(); // Trigger the download
+            });
+
+            // Function to download the numerical data as text
+           // Function to download the numerical data as text
+document.getElementById('downloadData').addEventListener('click', function () {
+    const data = {{ chart_data['data'] | safe }};
+    const labels = {{ chart_data['labels'] | safe }};
+    let dataStr = 'Sentiment, Count\n';
+    for (let i = 0; i < labels.length; i++) {
+        dataStr += `${labels[i]}, ${data[i]}\n`;
+    }
+
+    // Generate the dynamic filename for the text file
+    const facultyName = "{{ faculty_name }}"; // Use the faculty name from the Flask template
+    const systemDate = "{{ system_date }}"; // Use the system date from the Flask template
+    const fileName = `${facultyName.replace(/\s+/g, '_')}_${systemDate}.txt`; // Dynamic filename
+
+    // Create a Blob with the data and trigger download
+    const blob = new Blob([dataStr], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName; // Set the download filename
+    link.click(); // Trigger the download
+
+});
+
+        </script>
+        <hr>
+        <!-- Back to Home -->
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Back to Home</a>
+        <div class="footer">
+            © 2024 eDu Feed Sense. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
+
